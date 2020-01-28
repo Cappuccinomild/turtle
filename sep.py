@@ -116,7 +116,6 @@ def calc_G(K, X, img, X_label):
                 label_cnt[X_label[i]] += 1
 
         for i in range(len(mean)):
-                print(int(mean[i] / label_cnt[i]))
                 mean[i] = is_wall(img, mean[i] / label_cnt[i])
 
         return mean
