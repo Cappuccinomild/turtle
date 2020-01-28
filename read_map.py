@@ -1,6 +1,6 @@
 import cv2
 
-img = cv2.imread('map2.png', 2)
+img = cv2.imread('newmap.png', 2)
 print(img.shape)
 print(img)
 point = []

@@ -116,7 +116,7 @@ def calc_G(K, X, img, X_label):
                 label_cnt[X_label[i]] += 1
 
         for i in range(len(mean)):
-                
+                print(int(mean[i] / label_cnt[i]))
                 mean[i] = is_wall(img, mean[i] / label_cnt[i])
 
         return mean
@@ -128,38 +128,37 @@ def is_wall(img, p):
 
         row = int(row)
         col = int(col)
-        
+        flag = 0
 
         if img[row][col] == 255:#중심점이 벽일경우
-
-                if img[row-1][col] == 255 and img[row+1][col] == 255: #세로줄
-                        if img[row][col-1] == 255:#왼쪽이 검은색
-                                return np.array([row, col+1])
+            while ():
+                if img[row-flag][col] == 255: #위쪽이 검은색
+                    if img[row+flag][col] == 255: #아래쪽이 검은색
+                        if img[row][col-flag] == 255:#왼쪽이 검은색
+                            if img[row, col+flag] == 255: # 오른쪽이 검은색
+                                flag = flag + 1
+                                continue
+                            else:
+                                return np.array([row, col+flag])
                         else:
-                                return np.array([row, col-1])
-
-                elif img[row][col-1] == 255 and img[row][col+1] == 255: #가로
-                        if img[row-1][col] == 255:#위쪽이 검은색
-                                return np.array([row+1, col])
-                        else:
-                                return np.array([row-1, col])
-
-        else:
-                return np.array([row,col])
-
+                            return np.array([row, col-flag])
+                    else:
+                        return np.array([row+flag][col])
+                else:
+                    return np.array([row-flag][col])
 K = 3
 
-img = cv2.imread('map2.png', 2)
+img = cv2.imread('newmap.png', 2)
 
 #X = np.array([[[40,1], [42, 10]], [[10, 34], [21,16], [2, 23]], [[37, 26], [39, 37], [37, 41], [47, 48], [48,12]]])
 #X = np.array([[40,1], [42, 10], [10, 34], [21,16], [2, 23], [37, 26], [39, 37], [37, 41], [47, 48], [48,12]])
-X = np.array([[1, 6], [1, 12], [1, 23], [2, 1], [2, 31], [3, 6], [4, 15], [4, 28], [4, 37], [6, 4], [6, 9], [6, 22], [6, 27], [7, 27], [7, 35], [9, 2], [9, 12], [9, 16], [9, 29], [9, 30], [9, 32], [10, 3], [10, 37], [11, 22], [12, 34], [13, 0], [13, 3], [13, 6], [13, 7], [13, 34], [14, 17], [14, 20], [14, 25], [15, 12], [15, 34], [16, 31], [16, 34], [17, 6], [17, 9], [17, 15], [17, 20], [17, 22], [18, 1], [19, 9], [20, 4], [20, 31], [20, 33], [20, 34], [20, 35], [20, 38], [21, 6], [21, 9], [22, 9], [22, 14], [22, 16], [22, 17], [22, 19], [22, 20], [23, 1], [23, 4], [23, 6], [23, 27], [23, 32], [24, 1]])
+X = np.array([[1, 6], [1, 23], [2, 2], [2, 12], [2, 16], [2, 17], [3, 6], [3, 28], [3, 31], [4, 36], [5, 15], [5, 36], [6, 5], [6, 9], [6, 19], [6, 22], [9, 3], [9, 12], [9, 16], [10, 3], [10, 36], [11, 22], [11, 27], [11, 34], [12, 27], [12, 34], [13, 3], [13, 6], [13, 7], [13, 17], [13, 20], [14, 12], [14, 25], [14, 34], [15, 31], [15, 34], [16, 15], [16, 20], [17, 7], [17, 10], [17, 22], [18, 2], [19, 10], [19, 30], [19, 33], [19, 34], [19, 38], [20, 5], [21, 7], [21, 10], [21, 14], [21, 16], [21, 17], [21, 19], [21, 20], [21, 27], [22, 10], [22, 32], [23, 2], [23, 5], [23, 7]])
 X_label = init_kmean(K, X, img)
 mean = calc_G(K, X, img, X_label)
 
 print(mean)
 print(X_label)
-
+# print("check")
 #run kmean
 while True:
         temp_label = []
@@ -168,6 +167,7 @@ while True:
 
                 s = 9999
                 label = 0
+
                 for i in range(len(mean)):                
                         length = len(astar(img, x, list(mean[i])))
                         print(cnt, s, length)
