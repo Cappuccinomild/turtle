@@ -134,7 +134,7 @@ def is_wall(img, p):
                 if img[row-flag][col] == 0: #위쪽이 검은색
                     if img[row+flag][col] == 0: #아래쪽이 검은색
                         if img[row][col-flag] == 0:#왼쪽이 검은색
-                            if img[row, col+flag] == 0: # 오른쪽이 검은색
+                            if img[row][col+flag] == 0: # 오른쪽이 검은색
                                 flag = flag + 1
                                 continue
                             else:
@@ -142,9 +142,11 @@ def is_wall(img, p):
                         else:
                             return np.array([row, col-flag])
                     else:
-                        return np.array([row+flag][col])
+                        return np.array([row+flag, col])
                 else:
-                    return np.array([row-flag][col])
+                    return np.array([row-flag, col])
+        else:
+            return np.array([row, col])
 K = 3
 img = cv2.imread('newmap.png', 2)
 #X = np.array([[[40,1], [42, 10]], [[10, 34], [21,16], [2, 23]], [[37, 26], [39, 37], [37, 41], [47, 48], [48,12]]])
