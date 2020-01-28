@@ -100,7 +100,7 @@ def init_kmean(K, X, img):
         return X_label
 
 #calc G
-def calc_G(K, X, X_label):
+def calc_G(K, X, img, X_label):
         mean=[]
         label_cnt=[]
 
@@ -116,21 +116,35 @@ def calc_G(K, X, X_label):
                 label_cnt[X_label[i]] += 1
 
         for i in range(len(mean)):
-                mean[i] = mean[i] / label_cnt[i]
+                mean[i] = is_wall(img, mean[i] / label_cnt[i])
 
         return mean
 
 
 def is_wall(img, p):
-
+        
         row, col = p
 
-        if img[row-1][col] == 255 and img[row+1][col] == 255: #세로줄
-                
-
-        elif img[row][col-1] == 255 and img[row][col+1] == 255: #가로
-                
+        row = int(row)
+        col = int(col)
         
+
+        if img[row][col] == 255:#중심점이 벽일경우
+
+                if img[row-1][col] == 255 and img[row+1][col] == 255: #세로줄
+                        if img[row][col-1] == 255:#왼쪽이 검은색
+                                return [row, col+1]
+                        else:
+                                return [row, col-1]
+
+                elif img[row][col-1] == 255 and img[row][col+1] == 255: #가로
+                        if img[row-1][col] == 255:#위쪽이 검은색
+                                return [row+1, col]
+                        else:
+                                return [row-1, col]
+
+        else:
+                return p
 
 K = 3
 
@@ -140,7 +154,7 @@ img = cv2.imread('map.png', 2)
 X = np.array([[40,1], [42, 10], [10, 34], [21,16], [2, 23], [37, 26], [39, 37], [37, 41], [47, 48], [48,12]])
 
 X_label = init_kmean(K, X, img)
-mean = calc_G(K, X, X_label)
+mean = calc_G(K, X, img, X_label)
 
 print(mean)
 print(X_label)
@@ -167,7 +181,7 @@ while True:
         if X_label == temp_label:
                 break
         X_label = copy.deepcopy(temp_label)
-        mean = calc_G(K, X, temp_label)
+        mean = calc_G(K, X, img, temp_label)
         print(X_label)
         print(mean)
 
