@@ -5,6 +5,8 @@ import random
 import copy
 import matplotlib.pyplot as plt
 
+global path_adj
+
 def heuristic(a, b):
 	return (b[0] - a[0]) ** 2 + (b[1] - a[1]) ** 2
 
@@ -68,18 +70,70 @@ def calc_path(img, X, Y):
 
 	return np.array(path)
 
+def init_adj(X, img_name):
+
+    img = cv2.imread(img_name, 2)
+
+    path_adj = [[0 for col in range(len(X))] for row in range(len(X))]
+
+    #make adj list
+    for i in range(len(X)):
+        for j in range(i, len(X)):
+            path_adj[i][j] = len(astar(img, X[i], X[j]))
+
+    for i in range(len(X)):
+        for j in range(i, len(X)):
+            path_adj[j][i] = path_adj[i][j]
+    '''
+    for i in range(len(X)):
+            print(path_adj[i])
+    '''
+    return path_adj
+
 #init
 def init_kmean(K, X, img):
+
+        mean = set()
         X_label = []
-        mean=set()
+
+
+
+        #초기 점 설정
+
+        #첫번째 점은 랜덤
+        point = random.randint(0, len(X) - 1)
+
+        #이전에 선택된 점과의 거리를 기준으로 가장 먼 점이 높은 확률로 선정되게 한다
+        
         while len(mean) < K:
-                mean.add(random.randint(0, len(X) - 1))
+            sample_rate = []
+            #0~1까지의 확률을 가진 실수 리스트
+            total = sum(path_adj[point])
+
+            for i in range(len(X)):
+                sample_rate.append(path_adj[i][point]/total)
+
+            #선택
+            select = random.random()
+
+            index = 0
+            for i in sample_rate:
+                select -= i
+
+                if select <= 0:
+                    break
+
+                index += 1
+
+            mean.add(point)
+            point = index
 
         mean = list(mean)
         mean.sort()
 
+        #초기점에따라 군집화
         cnt = 0
-        for x in X:
+        for x_i in range(len(X)):
                 if cnt in mean:
                         X_label.append(mean.index(cnt))
                         cnt += 1
@@ -88,7 +142,8 @@ def init_kmean(K, X, img):
                 s = 9999
                 label = 0
                 for i in mean:
-                        length = len(astar(img, x, X[i]))
+                        length = path_adj[x_i][i]
+                        #length = len(astar(img, x, X[i]))
 
                         if s > length:
                                 s = length
@@ -225,6 +280,8 @@ if __name__ == '__main__':
     elbow = []
 
     X = np.array([[1, 6], [1, 23], [2, 2], [2, 12], [2, 16], [2, 17], [3, 6], [3, 28], [3, 31], [4, 36], [5, 15], [5, 36], [6, 5], [6, 9], [6, 19], [6, 22], [9, 3], [9, 12], [9, 16], [10, 3], [10, 36], [11, 22], [11, 27], [11, 34], [12, 27], [12, 34], [13, 3], [13, 6], [13, 7], [13, 17], [13, 20], [14, 12], [14, 25], [14, 34], [15, 31], [15, 34], [16, 15], [16, 20], [17, 7], [17, 10], [17, 22], [18, 2], [19, 10], [19, 30], [19, 33], [19, 34], [19, 38], [20, 5], [21, 7], [21, 10], [21, 14], [21, 16], [21, 17], [21, 19], [21, 20], [21, 27], [22, 10], [22, 32], [23, 2], [23, 5], [23, 7]])
+
+    path_adj = init_adj(X, 'newmap.png')
 
     for i in range(1, 10):
         X_label, density = run_kmeans(i, X, 'newmap.png')
