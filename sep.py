@@ -104,7 +104,7 @@ def init_kmean(K, X, img):
         point = random.randint(0, len(X) - 1)
 
         #이전에 선택된 점과의 거리를 기준으로 가장 먼 점이 높은 확률로 선정되게 한다
-        
+
         while len(mean) < K:
             sample_rate = []
             #0~1까지의 확률을 가진 실수 리스트
@@ -275,22 +275,34 @@ def run_kmeans(K, X, img_name):
 
     return X_label, density
 
+def elbow(inertias):
+	opt = []
+	for i in range(1, len(inertias) - 1):
+		tanA = inertias[i-1] - inertias[i]
+		tanB = inertias[i] - inertias[i+1]
+		opt.append((tanA - tanB)/(1+tanB*tanA))
+
+	return opt.index(max(opt))
+
+
 if __name__ == '__main__':
 
-    elbow = []
+	mean_dist = []
 
-    X = np.array([[1, 6], [1, 23], [2, 2], [2, 12], [2, 16], [2, 17], [3, 6], [3, 28], [3, 31], [4, 36], [5, 15], [5, 36], [6, 5], [6, 9], [6, 19], [6, 22], [9, 3], [9, 12], [9, 16], [10, 3], [10, 36], [11, 22], [11, 27], [11, 34], [12, 27], [12, 34], [13, 3], [13, 6], [13, 7], [13, 17], [13, 20], [14, 12], [14, 25], [14, 34], [15, 31], [15, 34], [16, 15], [16, 20], [17, 7], [17, 10], [17, 22], [18, 2], [19, 10], [19, 30], [19, 33], [19, 34], [19, 38], [20, 5], [21, 7], [21, 10], [21, 14], [21, 16], [21, 17], [21, 19], [21, 20], [21, 27], [22, 10], [22, 32], [23, 2], [23, 5], [23, 7]])
+	X = np.array([[1, 6], [1, 23], [2, 2], [2, 12], [2, 16], [2, 17], [3, 6], [3, 28], [3, 31], [4, 36], [5, 15], [5, 36], [6, 5], [6, 9], [6, 19], [6, 22], [9, 3], [9, 12], [9, 16], [10, 3], [10, 36], [11, 22], [11, 27], [11, 34], [12, 27], [12, 34], [13, 3], [13, 6], [13, 7], [13, 17], [13, 20], [14, 12], [14, 25], [14, 34], [15, 31], [15, 34], [16, 15], [16, 20], [17, 7], [17, 10], [17, 22], [18, 2], [19, 10], [19, 30], [19, 33], [19, 34], [19, 38], [20, 5], [21, 7], [21, 10], [21, 14], [21, 16], [21, 17], [21, 19], [21, 20], [21, 27], [22, 10], [22, 32], [23, 2], [23, 5], [23, 7]])
 
-    path_adj = init_adj(X, 'newmap.png')
+	path_adj = init_adj(X, 'newmap.png')
 
-    for i in range(1, 10):
-        X_label, density = run_kmeans(i, X, 'newmap.png')
-        elbow.append(sum(density))
+	for i in range(1, 10):
+	    X_label, density = run_kmeans(i, X, 'newmap.png')
+	    mean_dist.append(sum(density))
 
-    x = range(1, 10)
-    y = elbow
+	x = range(1, 10)
+	y = mean_dist
 
-    plt.plot(x, y)
-    plt.show()
+	print(elbow(mean_dist))
 
-    write_to_img('newmap.png', X, X_label)
+	plt.plot(x, y)
+	plt.show()
+
+	write_to_img('newmap.png', X, X_label)
