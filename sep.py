@@ -284,6 +284,23 @@ def elbow(inertias):
 	print(opt)
 	return opt.index(max(opt))
 
+def display_tsp(K,X_label,X):
+	list_tsp=[]
+	for i in range(K):
+		list_tsp.append([])
+
+	for i in range(len(X)):
+		list_tsp[X_label[i]].append(X[i])
+	for i in range(K):
+		print(i,"번째: ",list_tsp[i],len(list_tsp[i]))
+
+                
+	for i in range(K):
+		tsp_path_adj = init_adj(list_tsp[i], 'newmap.png')
+		r = range(len(tsp_path_adj))
+		# Dictionary of distance
+		dist = {(i, j): tsp_path_adj[i][j] for i in r for j in r}
+		path_len,path=tsp.tsp(r, dist)
 
 if __name__ == '__main__':
 
