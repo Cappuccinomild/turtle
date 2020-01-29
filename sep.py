@@ -263,7 +263,7 @@ def run_kmeans(K, X, img_name):
                             if s > length:
                                     s = length
                                     label = i
-                    density[label] += s
+                    density[label] += s**2
                     temp_label.append(label)
                     cnt+=1
 
@@ -281,7 +281,7 @@ def elbow(inertias):
 		tanA = inertias[i-1] - inertias[i]
 		tanB = inertias[i] - inertias[i+1]
 		opt.append((tanA - tanB)/(1+tanB*tanA))
-
+	print(opt)
 	return opt.index(max(opt))
 
 
@@ -294,13 +294,23 @@ if __name__ == '__main__':
 	path_adj = init_adj(X, 'newmap.png')
 
 	for i in range(1, 10):
-	    X_label, density = run_kmeans(i, X, 'newmap.png')
-	    mean_dist.append(sum(density))
+		print(i)
+		X_label, density = run_kmeans(i, X, 'newmap.png')
+		mean_dist.append(sum(density))
 
 	x = range(1, 10)
 	y = mean_dist
 
-	print(elbow(mean_dist))
+	e=elbow(mean_dist)
+
+	print("elbow : ", e)
+
+	X_label, density = run_kmeans(e, X, 'newmap.png')
+
+	sep = [[] for row in range(10)]
+	for i in range(len(X)):
+
+
 
 	plt.plot(x, y)
 	plt.show()
