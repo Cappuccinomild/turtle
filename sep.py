@@ -93,67 +93,67 @@ def init_adj(X, img_name):
 #init
 def init_kmean(K, X, img):
 
-        mean = set()
-        X_label = []
+	mean = set()
+	X_label = []
 
+	path_adj = init_adj(X, 'newmap.png')
 
+	#초기 점 설정
 
-        #초기 점 설정
+	#첫번째 점은 랜덤
+	point = random.randint(0, len(X) - 1)
 
-        #첫번째 점은 랜덤
-        point = random.randint(0, len(X) - 1)
+	#이전에 선택된 점과의 거리를 기준으로 가장 먼 점이 높은 확률로 선정되게 한다
 
-        #이전에 선택된 점과의 거리를 기준으로 가장 먼 점이 높은 확률로 선정되게 한다
+	while len(mean) < K:
+	    sample_rate = []
+	    #0~1까지의 확률을 가진 실수 리스트
+	    total = sum(path_adj[point])
 
-        while len(mean) < K:
-            sample_rate = []
-            #0~1까지의 확률을 가진 실수 리스트
-            total = sum(path_adj[point])
+	    for i in range(len(X)):
+	        sample_rate.append(path_adj[i][point]/total)
 
-            for i in range(len(X)):
-                sample_rate.append(path_adj[i][point]/total)
+	    #선택
+	    select = random.random()
 
-            #선택
-            select = random.random()
+	    index = 0
+	    for i in sample_rate:
+	        select -= i
 
-            index = 0
-            for i in sample_rate:
-                select -= i
+	        if select <= 0:
+	            break
 
-                if select <= 0:
-                    break
+	        index += 1
 
-                index += 1
+	    mean.add(point)
+	    point = index
 
-            mean.add(point)
-            point = index
+	mean = list(mean)
+	mean.sort()
 
-        mean = list(mean)
-        mean.sort()
+	#초기점에따라 군집화
+	cnt = 0
+	for x_i in range(len(X)):
+	        if cnt in mean:
+	                X_label.append(mean.index(cnt))
+	                cnt += 1
+	                continue
 
-        #초기점에따라 군집화
-        cnt = 0
-        for x_i in range(len(X)):
-                if cnt in mean:
-                        X_label.append(mean.index(cnt))
-                        cnt += 1
-                        continue
+	        s = 9999
+	        label = 0
+	        for i in mean:
+	                length = path_adj[x_i][i]
+	                #length = len(astar(img, X[x_i], X[i]))
 
-                s = 9999
-                label = 0
-                for i in mean:
-                        length = path_adj[x_i][i]
-                        #length = len(astar(img, x, X[i]))
+	                if s > length:
+	                        s = length
+	                        label = i
 
-                        if s > length:
-                                s = length
-                                label = i
+	        X_label.append(mean.index(label))
 
-                X_label.append(mean.index(label))
+	        cnt += 1
 
-                cnt += 1
-
-        return X_label
+	return X_label
 
 #calc G
 def calc_G(K, X, img, X_label):
@@ -353,10 +353,10 @@ if __name__ == '__main__':
 	plt.show()
 
 	'''
-	i = 5
-	X_label, density = run_kmeans(i, X, 'newmap.png')
+	K = 3
+	X_label, density = run_kmeans(K, X, 'newmap.png')
 
-	sep = [[] for row in range(i)]
+	sep = [[] for row in range(K)]
 
 	for i in range(len(X)):
 		sep[X_label[i]].append(list(X[i]))
@@ -367,20 +367,16 @@ if __name__ == '__main__':
 	for i in range(len(sep)):
 		if len(sep[i]) > 15:
 
+			X_label, density = run_kmeans(2, sep[i], 'newmap.png')
 
-			X_label, density = run_kmeans(3, sep[i], 'newmap.png')
-			print(sep[i], X_label)
-			temp_sep = [[] for row in range(3)]
+			temp_sep = [[] for row in range(2)]
 
-			for j in range(len(X_label)):
-				temp_sep[X_label[j]].append(list(X[j]))
-			print(sep[i])
-			print(sep.pop(i))
+			for j in range(len(sep[i])):
+				temp_sep[X_label[j]].append(sep[i][j])
+
 			for t in temp_sep:
 				sep.append(t)
 
-
-	print(sep)
 
 	write_to_imgf('newmap.png', sep)
 	#write_to_img('newmap.png', X, X_label)
