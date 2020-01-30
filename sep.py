@@ -302,12 +302,10 @@ def run_kmeans(K, X, img_name):
 
 def elbow(inertias):
 	opt = []
-	for i in range(1, len(inertias) - 1):
-		tanA = inertias[i-1] - inertias[i]
-		tanB = inertias[i] - inertias[i+1]
-		opt.append(abs((tanA - tanB)/(1+tanB*tanA)))
+	for i in range(1, len(inertias)-1):
+		opt.append((inertias[i-1] - inertias[i]) / (inertias[i] - inertias[i+1]))
 
-	return opt.index(min(opt))
+	return opt.index(max(opt)) + 3
 
 def display_tsp(K,X_label,X):
 	list_tsp=[]
@@ -334,26 +332,30 @@ if __name__ == '__main__':
 	X = np.array([[1, 6], [1, 23], [2, 2], [2, 12], [2, 16], [2, 17], [3, 6], [3, 28], [3, 31], [4, 36], [5, 15], [5, 36], [6, 5], [6, 9], [6, 19], [6, 22], [9, 3], [9, 12], [9, 16], [10, 3], [10, 36], [11, 22], [11, 27], [11, 34], [12, 27], [12, 34], [13, 3], [13, 6], [13, 7], [13, 17], [13, 20], [14, 12], [14, 25], [14, 34], [15, 31], [15, 34], [16, 15], [16, 20], [17, 7], [17, 10], [17, 22], [18, 2], [19, 10], [19, 30], [19, 33], [19, 34], [19, 38], [20, 5], [21, 7], [21, 10], [21, 14], [21, 16], [21, 17], [21, 19], [21, 20], [21, 27], [22, 10], [22, 32], [23, 2], [23, 5], [23, 7]])
 
 	path_adj = init_adj(X, 'newmap.png')
-	'''
-	for i in range(2, 10):
+
+	for i in range(2, 9):
 		print(i)
 		X_label, density = run_kmeans(i, X, 'newmap.png')
 		mean_dist.append(sum(density))
 
+
+	'''
+	print(mean_dist)
+
 	x = range(2, 10)
 	y = mean_dist
+
+	plt.plot(x, y, marker='o')
+	plt.show()
+	'''
+
+	write_to_img('newmap.png', X, X_label)
 
 	e=elbow(mean_dist)
 
 	print("elbow : ", e)
 
-	X_label, density = run_kmeans(e, X, 'newmap.png')
-
-	plt.plot(x, y)
-	plt.show()
-
-	'''
-	K = 3
+	K = e
 	X_label, density = run_kmeans(K, X, 'newmap.png')
 
 	sep = [[] for row in range(K)]
@@ -364,19 +366,28 @@ if __name__ == '__main__':
 	write_to_img('newmap.png', X, X_label)
 
 	print(sep)
-	for i in range(len(sep)):
+	i = 0
+	while True:
+		print(i, len(sep))
+		if i >= len(sep):
+			break
+
 		if len(sep[i]) > 15:
 
-			X_label, density = run_kmeans(2, sep[i], 'newmap.png')
+			X_label, density = run_kmeans(4, sep[i], 'newmap.png')
 
-			temp_sep = [[] for row in range(2)]
+			temp_sep = [[] for row in range(4)]
 
 			for j in range(len(sep[i])):
 				temp_sep[X_label[j]].append(sep[i][j])
 
+			print("before", sep)
+			print()
 			for t in temp_sep:
 				sep.append(t)
+			print("after", sep)
+			print()
 
+		i+=1
 
 	write_to_imgf('newmap.png', sep)
-	#write_to_img('newmap.png', X, X_label)
