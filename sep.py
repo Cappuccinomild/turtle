@@ -234,6 +234,31 @@ def write_to_img(img_name, X, X_label):
 
         cv2.imwrite('result.png', img)
 
+def write_to_imgf(img_name, X):
+
+	img = cv2.imread(img_name)
+
+	color_list = []
+
+	while len(color_list) <= len(X):
+
+	        color = list(np.random.random(size=3) * 255)
+
+	        while color in color_list:
+	                color = list(np.random.random(size=3) * 255)
+
+	        color_list.append(color)
+
+	for x in X:
+		color = color_list.pop()
+		for f in x:
+		    row = f[0]
+		    col = f[1]
+
+		    img[row][col] = color
+
+	cv2.imwrite('resultf.png', img)
+
 def run_kmeans(K, X, img_name):
     img = cv2.imread(img_name, 2)
     #X = np.array([[[40,1], [42, 10]], [[10, 34], [21,16], [2, 23]], [[37, 26], [39, 37], [37, 41], [47, 48], [48,12]]])
@@ -280,9 +305,9 @@ def elbow(inertias):
 	for i in range(1, len(inertias) - 1):
 		tanA = inertias[i-1] - inertias[i]
 		tanB = inertias[i] - inertias[i+1]
-		opt.append((tanA - tanB)/(1+tanB*tanA))
-	print(opt)
-	return opt.index(max(opt))
+		opt.append(abs((tanA - tanB)/(1+tanB*tanA)))
+
+	return opt.index(min(opt))
 
 def display_tsp(K,X_label,X):
 	list_tsp=[]
@@ -294,7 +319,7 @@ def display_tsp(K,X_label,X):
 	for i in range(K):
 		print(i,"번째: ",list_tsp[i],len(list_tsp[i]))
 
-                
+
 	for i in range(K):
 		tsp_path_adj = init_adj(list_tsp[i], 'newmap.png')
 		r = range(len(tsp_path_adj))
@@ -309,13 +334,13 @@ if __name__ == '__main__':
 	X = np.array([[1, 6], [1, 23], [2, 2], [2, 12], [2, 16], [2, 17], [3, 6], [3, 28], [3, 31], [4, 36], [5, 15], [5, 36], [6, 5], [6, 9], [6, 19], [6, 22], [9, 3], [9, 12], [9, 16], [10, 3], [10, 36], [11, 22], [11, 27], [11, 34], [12, 27], [12, 34], [13, 3], [13, 6], [13, 7], [13, 17], [13, 20], [14, 12], [14, 25], [14, 34], [15, 31], [15, 34], [16, 15], [16, 20], [17, 7], [17, 10], [17, 22], [18, 2], [19, 10], [19, 30], [19, 33], [19, 34], [19, 38], [20, 5], [21, 7], [21, 10], [21, 14], [21, 16], [21, 17], [21, 19], [21, 20], [21, 27], [22, 10], [22, 32], [23, 2], [23, 5], [23, 7]])
 
 	path_adj = init_adj(X, 'newmap.png')
-
-	for i in range(1, 10):
+	'''
+	for i in range(2, 10):
 		print(i)
 		X_label, density = run_kmeans(i, X, 'newmap.png')
 		mean_dist.append(sum(density))
 
-	x = range(1, 10)
+	x = range(2, 10)
 	y = mean_dist
 
 	e=elbow(mean_dist)
@@ -324,12 +349,38 @@ if __name__ == '__main__':
 
 	X_label, density = run_kmeans(e, X, 'newmap.png')
 
-	sep = [[] for row in range(10)]
-	for i in range(len(X)):
-
-
-
 	plt.plot(x, y)
 	plt.show()
 
+	'''
+	i = 5
+	X_label, density = run_kmeans(i, X, 'newmap.png')
+
+	sep = [[] for row in range(i)]
+
+	for i in range(len(X)):
+		sep[X_label[i]].append(list(X[i]))
+
 	write_to_img('newmap.png', X, X_label)
+
+	print(sep)
+	for i in range(len(sep)):
+		if len(sep[i]) > 15:
+
+
+			X_label, density = run_kmeans(3, sep[i], 'newmap.png')
+			print(sep[i], X_label)
+			temp_sep = [[] for row in range(3)]
+
+			for j in range(len(X_label)):
+				temp_sep[X_label[j]].append(list(X[j]))
+			print(sep[i])
+			print(sep.pop(i))
+			for t in temp_sep:
+				sep.append(t)
+
+
+	print(sep)
+
+	write_to_imgf('newmap.png', sep)
+	#write_to_img('newmap.png', X, X_label)
