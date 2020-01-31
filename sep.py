@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from pathfinding.core.diagonal_movement import DiagonalMovement
 from pathfinding.core.grid import Grid
 from pathfinding.finder.a_star import AStarFinder
+import multiprocessing
 
 global path_adj
 
@@ -45,10 +46,7 @@ def init_adj(X, img_name):
 	for i in range(len(X)):
 		for j in range(i, len(X)):
 			path_adj[j][i] = path_adj[i][j]
-	'''
-	for i in range(len(X)):
-	print(path_adj[i])
-	'''
+
 	return path_adj
 
 
@@ -132,8 +130,6 @@ def calc_G(K, X, img, X_label):
 	for i in range(len(X)):
 		mean[X_label[i]] += X[i]
 		label_cnt[X_label[i]] += 1
-	print(mean)
-	print(label_cnt)
 
 	for i in range(len(mean)):
 		mean[i] = is_wall(img, mean[i] / label_cnt[i])
@@ -188,7 +184,7 @@ def write_to_img(img_name, X, X_label):
 	cv2.imwrite('result.png', img)
 
 
-def write_to_imgf(img_name, X):
+def write_to_imgf(img_name, X, out_name):
 	img = cv2.imread(img_name)
 	color_list = []
 
@@ -206,10 +202,15 @@ def write_to_imgf(img_name, X):
 			col = f[1]
 			img[row][col] = color
 
-	cv2.imwrite('resultf.png', img)
+	cv2.imwrite(out_name, img)
 
 
-def run_kmeans(K, X, img_name):
+def run_kmeans(args):
+
+	K = args[0]
+	X = args[1]
+	img_name = args[2]
+
 	img = cv2.imread(img_name, 2)
 	#X = np.array([[[40,1], [42, 10]], [[10, 34], [21,16], [2, 23]], [[37, 26], [39, 37], [37, 41], [47, 48], [48,12]]])
     #X = np.array([[40,1], [42, 10], [10, 34], [21,16], [2, 23], [37, 26], [39, 37], [37, 41], [47, 48], [48,12]])
@@ -276,70 +277,71 @@ def display_tsp(K,X_label,X):
 		dist = {(i, j): tsp_path_adj[i][j] for i in r for j in r}
 		path_len,path=tsp.tsp(r, dist)
 
+def get_opt_kmean(img_name, X, end):
 
-if __name__ == '__main__':
 
+	#인수 만들기
+	args = []
+	for i in range(2, end):
+		args.append((i, X, img_name))
+
+	#멀티프로세싱
+	print("processing start")
+	pool = multiprocessing.Pool(processes=len(args)) # 현재 시스템에서 사용 할 프로세스 개수
+	result = pool.map(run_kmeans, args)
+	pool.close()
+	pool.join()
+
+	#분산도 구하기
 	mean_dist = []
-
-	X = np.array([[1, 6], [1, 23], [2, 2], [2, 12], [2, 16], [2, 17], [3, 6], [3, 28], [3, 31], [4, 36], [5, 15], [5, 36], [6, 5], [6, 9], [6, 19], [6, 22], [9, 3], [9, 12], [9, 16], [10, 3], [10, 36], [11, 22], [11, 27], [11, 34], [12, 27], [12, 34], [13, 3], [13, 6], [13, 7], [13, 17], [13, 20], [14, 12], [14, 25], [14, 34], [15, 31], [15, 34], [16, 15], [16, 20], [17, 7], [17, 10], [17, 22], [18, 2], [19, 10], [19, 30], [19, 33], [19, 34], [19, 38], [20, 5], [21, 7], [21, 10], [21, 14], [21, 16], [21, 17], [21, 19], [21, 20], [21, 27], [22, 10], [22, 32], [23, 2], [23, 5], [23, 7]])
-
-	path_adj = init_adj(X, 'newmap.png')
-
-	for i in range(2, 9):
-		print(i)
-		X_label, density = run_kmeans(i, X, 'newmap.png')
-		mean_dist.append(sum(density))
-
-
-	'''
-	print(mean_dist)
-
-	x = range(2, 10)
-	y = mean_dist
-
-	plt.plot(x, y, marker='o')
-	plt.show()
-	'''
-
-	write_to_img('newmap.png', X, X_label)
+	for density in result	:
+		mean_dist.append(sum(density[1]))
 
 	e=elbow(mean_dist)
 
 	print("elbow : ", e)
 
-	K = e
-	X_label, density = run_kmeans(K, X, 'newmap.png')
+	X_label, density = result[e - 2]#0번째의 K는 2이므로 elbow에서 2를 빼서 K를 찾음
 
-	sep = [[] for row in range(K)]
+	sep = [[] for row in range(e)]
 
 	for i in range(len(X)):
 		sep[X_label[i]].append(list(X[i]))
 
-	write_to_img('newmap.png', X, X_label)
+	return sep
 
-	print(sep)
+
+if __name__ == '__main__':
+
+
+
+	X = np.array([[1, 6], [1, 23], [2, 2], [2, 12], [2, 16], [2, 17], [3, 6], [3, 28], [3, 31], [4, 36], [5, 15], [5, 36], [6, 5], [6, 9], [6, 19], [6, 22], [9, 3], [9, 12], [9, 16], [10, 3], [10, 36], [11, 22], [11, 27], [11, 34], [12, 27], [12, 34], [13, 3], [13, 6], [13, 7], [13, 17], [13, 20], [14, 12], [14, 25], [14, 34], [15, 31], [15, 34], [16, 15], [16, 20], [17, 7], [17, 10], [17, 22], [18, 2], [19, 10], [19, 30], [19, 33], [19, 34], [19, 38], [20, 5], [21, 7], [21, 10], [21, 14], [21, 16], [21, 17], [21, 19], [21, 20], [21, 27], [22, 10], [22, 32], [23, 2], [23, 5], [23, 7]])
+
+	#path_adj = init_adj(X, 'newmap.png')
+	sep = get_opt_kmean('newmap.png', X, 10)
+
+	write_to_imgf('newmap.png', sep, 'result1.png')
+
 	i = 0
 	while True:
-		print(i, len(sep))
+
 		if i >= len(sep):
 			break
 
 		if len(sep[i]) > 15:
-
+			'''
 			X_label, density = run_kmeans(4, sep[i], 'newmap.png')
 
 			temp_sep = [[] for row in range(4)]
 
 			for j in range(len(sep[i])):
 				temp_sep[X_label[j]].append(sep[i][j])
+			'''
+			temp_sep = get_opt_kmean('newmap.png', sep[i], 10)
 
-			print("before", sep)
-			print()
 			for t in temp_sep:
 				sep.append(t)
-			print("after", sep)
-			print()
 
 		i+=1
 
-	write_to_imgf('newmap.png', sep)
+	write_to_imgf('newmap.png', sep, 'result2.png')
