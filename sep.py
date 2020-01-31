@@ -254,7 +254,7 @@ def run_kmeans(K, X, img_name):
     #X = np.array([[40,1], [42, 10], [10, 34], [21,16], [2, 23], [37, 26], [39, 37], [37, 41], [47, 48], [48,12]])
 	X_label = init_kmean(K, X, img)
 	mean = calc_G(K, X, img, X_label)
-
+	prev = []
 	# print("check")
     # run kmean
 	while True:
@@ -277,8 +277,16 @@ def run_kmeans(K, X, img_name):
 
 		if X_label == temp_label:
 			break
+
+		if mean in prev:
+			break
+
 		X_label = copy.deepcopy(temp_label)
 		mean = calc_G(K, X, img, temp_label)
+		prev.append(mean)
+
+
+
 	return X_label, density
 
 
