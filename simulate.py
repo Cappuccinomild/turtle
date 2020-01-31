@@ -4,24 +4,63 @@ import numpy as np
 import random
 import copy
 import matplotlib.pyplot as plt
-from pathfinding.core.diagonal_movement import DiagonalMovement
-from pathfinding.core.grid import Grid
-from pathfinding.finder.a_star import AStarFinder
 
 global path_adj
 
 
+def heuristic(a, b):
+	return (b[0] - a[0]) ** 2 + (b[1] - a[1]) ** 2
+
+
 def astar(array, start, goal):
 
-	start = list(start)
-	goal = list(goal)
+	start = (int(start[0]), int(start[1]))
+	goal = (int(goal[0]), int(goal[1]))
+	neighbors = [(0,1),(0,-1),(1,0),(-1,0),(1,1),(1,-1),(-1,1),(-1,-1)]
+	close_set = set()
+	came_from = {}
+	gscore = {start:0}
+	fscore = {start:heuristic(start, goal)}
+	oheap = []
+	heappush(oheap, (fscore[start], start))
 
-	grid = Grid(matrix=array)
+	while oheap:
 
-	finder = AStarFinder(diagonal_movement=DiagonalMovement.always)
-	path, runs = finder.find_path(grid.node(start[1], start[0]), grid.node(goal[1], goal[0]), grid)
+		current = heappop(oheap)[1]
 
-	return path
+		if current == goal:
+			data = []
+			while current in came_from:
+				data.append(current)
+				current = came_from[current]
+			return data
+
+		close_set.add(current)
+		for i, j in neighbors:
+			neighbor = current[0] + i, current[1] + j
+			tentative_g_score = gscore[current] + heuristic(current, neighbor)
+			if 0 <= neighbor[0] < array.shape[0]:
+				if 0 <= neighbor[1] < array.shape[1]:
+					if array[neighbor[0]][neighbor[1]] == 0:
+						continue
+				else:
+					# array bound y walls
+					continue
+			else:
+				# array bound x walls
+				continue
+
+			if neighbor in close_set and tentative_g_score >= gscore.get(neighbor, 0):
+				continue
+
+			if tentative_g_score < gscore.get(neighbor, 0) or neighbor not in [i[1]for i in oheap]:
+				came_from[neighbor] = current
+				gscore[neighbor] = tentative_g_score
+				fscore[neighbor] = tentative_g_score + heuristic(neighbor, goal)
+				heappush(oheap, (fscore[neighbor], neighbor))
+
+	return list(range(0,9999))
+
 
 def calc_path(img, X, Y):
 	path = []
@@ -245,8 +284,6 @@ def run_kmeans(K, X, img_name):
 		X_label = copy.deepcopy(temp_label)
 		mean = calc_G(K, X, img, temp_label)
 		prev.append(mean)
-
-
 
 	return X_label, density
 

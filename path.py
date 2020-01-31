@@ -2,67 +2,42 @@ import cv2
 import sys
 import math
 import numpy
-from heapq import *
+from pathfinding.core.diagonal_movement import DiagonalMovement
+from pathfinding.core.grid import Grid
+from pathfinding.finder.a_star import AStarFinder
 
+map_data = cv2.imread('./newmap.png', cv2.IMREAD_GRAYSCALE)
+height, width = map_data.shape
 
-def heuristic(a, b):
-    return (b[0] - a[0]) ** 2 + (b[1] - a[1]) ** 2
+cvt_map = map_data.tolist()
 
-def astar(array, start, goal):
+for i in range(height):
+    for j in range(width):
+        if cvt_map[i][j] == 0:
+            cvt_map[i][j] = 0
+        elif cvt_map[i][j] == 127:
+            cvt_map[i][j] = 1
+        else:
+            cvt_map[i][j] = 1
+print(cvt_map)
 
-    neighbors = [(0,1),(0,-1),(1,0),(-1,0),(1,1),(1,-1),(-1,1),(-1,-1)]
-    
-    close_set = set()
-    came_from = {}
-    gscore = {start:0}
-    fscore = {start:heuristic(start, goal)}
-    print(gscore, type(start))
-    oheap = []
+start = [27,14]
+end = [12,52]
 
-    heappush(oheap, (fscore[start], start))
-    
-    while oheap:
+grid = Grid(matrix=cvt_map)
 
-        current = heappop(oheap)[1]
+start = grid.node(6, 1)
+end = grid.node(28, 3)
 
-        if current == goal:
-            data = []
-            while current in came_from:
-                data.append(current)
-                current = came_from[current]
-            return data
+finder = AStarFinder(diagonal_movement=DiagonalMovement.always)
+path, runs = finder.find_path(start, end, grid)
+print(path)
+print('operations:', runs, 'path length:', len(path))
+#print(grid.grid_str(path=path, start=start, end=end))
 
-        close_set.add(current)
-        for i, j in neighbors:
-            neighbor = current[0] + i, current[1] + j            
-            tentative_g_score = gscore[current] + heuristic(current, neighbor)
-            if 0 <= neighbor[0] < array.shape[0]:
-                if 0 <= neighbor[1] < array.shape[1]:                
-                    if array[neighbor[0]][neighbor[1]] == 0:
-                        continue
-                else:
-                    # array bound y walls
-                    continue
-            else:
-                # array bound x walls
-                continue
-                
-            if neighbor in close_set and tentative_g_score >= gscore.get(neighbor, 0):
-                continue
-                
-            if  tentative_g_score < gscore.get(neighbor, 0) or neighbor not in [i[1]for i in oheap]:
-                came_from[neighbor] = current
-                gscore[neighbor] = tentative_g_score
-                fscore[neighbor] = tentative_g_score + heuristic(neighbor, goal)
-                heappush(oheap, (fscore[neighbor], neighbor))
-                
-    return 9999
-
-map_data = cv2.imread('./map.png', cv2.IMREAD_GRAYSCALE)
-
-path = (astar(map_data, (44,5), (44,44)))
+#print(grid.grid_)
 
 for i, j in path:
-    map_data[i][j] = int(255/2)
+    map_data[j][i] = int(255/3)
 
 cv2.imwrite('path.png', map_data)
