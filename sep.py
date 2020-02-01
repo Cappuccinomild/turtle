@@ -49,6 +49,18 @@ def init_adj(X, img_name):
 
 	return path_adj
 
+def adj_row(img, X, row):
+
+	path_adj = [0 for col in range(len(X))]
+
+	#make adj list
+	for i in range(len(X)):
+		path_adj[i] = len(astar(img, X[i], X[row]))
+
+
+	return path_adj
+
+
 
 # init
 def init_kmean(K, X, img):
@@ -56,22 +68,21 @@ def init_kmean(K, X, img):
 	mean = set()
 	X_label = []
 
-	path_adj = init_adj(X, 'newmap.png')
-
 	# 초기 점 설정
 
 	# 첫번째 점은 랜덤
 	point = random.randint(0, len(X) - 1)
 
-	# 이전에 선택된 점과의 거리를 기준으로 가장 먼 점이 높은 확률로 선정되게 한다
+	path_adj = adj_row(img, X, point)
 
+	# 이전에 선택된 점과의 거리를 기준으로 가장 먼 점이 높은 확률로 선정되게 한다
 	while len(mean) < K:
 		sample_rate = []
 		#0~1까지의 확률을 가진 실수 리스트
-		total = sum(path_adj[point])
+		total = sum(path_adj)
 
 		for i in range(len(X)):
-			sample_rate.append(path_adj[i][point]/total)
+			sample_rate.append(path_adj[i]/total)
 
 	    #선택
 		select = random.random()
@@ -87,6 +98,7 @@ def init_kmean(K, X, img):
 
 		mean.add(point)
 		point = index
+		path_adj = adj_row(img,X,point)
 
 	mean = list(mean)
 	mean.sort()
@@ -102,8 +114,8 @@ def init_kmean(K, X, img):
 		s = 9999
 		label = 0
 		for i in mean:
-			length = path_adj[x_i][i]
-			#length = len(astar(img, X[x_i], X[i]))
+			#length = path_adj[x_i][i]
+			length = len(astar(img, X[x_i], X[i]))
 			if s > length:
 				s = length
 				label = i
@@ -271,7 +283,7 @@ def display_tsp(K,X_label,X):
 		print(i,"번째: ",list_tsp[i],len(list_tsp[i]))
 
 	for i in range(K):
-		tsp_path_adj = init_adj(list_tsp[i], 'newmap.png')
+		tsp_path_adj = init_adj(list_tsp[i], 'big_map.png')
 		r = range(len(tsp_path_adj))
 		# Dictionary of distance
 		dist = {(i, j): tsp_path_adj[i][j] for i in r for j in r}
@@ -312,11 +324,11 @@ def get_opt_kmean(img_name, X, end):
 
 if __name__ == '__main__':
 
-	X = np.array([[1, 6], [1, 23], [2, 2], [2, 12], [2, 16], [2, 17], [3, 6], [3, 28], [3, 31], [4, 36], [5, 15], [5, 36], [6, 5], [6, 9], [6, 19], [6, 22], [9, 3], [9, 12], [9, 16], [10, 3], [10, 36], [11, 22], [11, 27], [11, 34], [12, 27], [12, 34], [13, 3], [13, 6], [13, 7], [13, 17], [13, 20], [14, 12], [14, 25], [14, 34], [15, 31], [15, 34], [16, 15], [16, 20], [17, 7], [17, 10], [17, 22], [18, 2], [19, 10], [19, 30], [19, 33], [19, 34], [19, 38], [20, 5], [21, 7], [21, 10], [21, 14], [21, 16], [21, 17], [21, 19], [21, 20], [21, 27], [22, 10], [22, 32], [23, 2], [23, 5], [23, 7]])
+	X = np.array([[4, 5], [4, 6], [4, 7], [4, 23], [4, 24], [4, 25], [4, 49], [4, 65], [4, 66], [4, 83], [5, 136], [5, 147], [6, 95], [6, 136], [6, 147], [7, 36], [7, 147], [8, 147], [11, 48], [11, 71], [12, 20], [12, 113], [12, 119], [12, 127], [14, 27], [18, 27], [19, 27], [20, 11], [20, 27], [20, 62], [22, 20], [26, 20], [27, 39], [27, 49], [27, 50], [27, 51], [27, 52], [27, 53], [27, 54], [27, 55], [27, 56], [27, 57], [27, 58], [27, 59], [27, 60], [27, 61], [27, 62], [27, 63], [27, 79], [27, 89], [30, 4], [30, 11], [31, 4], [31, 11], [34, 100], [35, 100], [36, 15], [36, 33], [36, 34], [36, 35], [36, 36], [36, 49], [36, 65], [36, 100], [39, 114], [39, 117], [40, 147], [42, 120], [43, 13], [43, 23], [43, 27], [43, 54], [43, 56], [43, 75], [43, 76], [44, 91], [44, 136], [45, 111], [49, 80], [49, 91], [51, 51], [52, 12], [52, 30], [52, 31], [52, 32], [53, 71], [53, 80], [53, 91], [55, 60], [55, 111], [56, 71], [56, 100], [56, 120], [57, 4], [57, 120], [57, 136], [58, 4], [58, 51], [58, 91], [58, 120], [59, 91], [62, 127], [63, 15], [63, 16], [63, 17], [63, 18], [63, 38], [63, 127], [63, 136], [64, 60], [64, 152], [64, 153], [64, 154], [65, 80], [66, 51], [66, 100], [67, 51], [67, 100], [68, 31], [68, 51], [68, 100], [69, 4], [69, 51], [69, 91], [69, 100], [69, 155], [70, 60], [70, 71], [70, 80], [71, 40], [71, 60], [71, 71], [71, 80], [72, 31], [72, 71], [73, 20], [75, 11], [76, 40], [77, 4], [77, 20], [79, 31], [79, 120], [79, 123], [79, 137], [79, 154], [80, 11], [81, 11], [82, 4], [84, 40], [84, 111], [85, 4], [85, 31], [87, 57], [87, 65], [87, 70], [87, 76], [87, 83], [87, 88], [87, 89], [88, 128], [88, 148], [88, 149], [90, 40], [90, 47], [90, 96], [91, 47], [91, 96], [91, 155], [92, 11], [92, 47], [92, 96], [92, 155], [93, 155], [94, 20], [95, 6], [95, 7], [95, 8], [95, 31], [95, 44], [95, 45], [95, 121], [95, 122], [95, 123], [95, 143]])
 
-	sep = get_opt_kmean('newmap.png', X, 10)
+	sep = get_opt_kmean('big_map.png', X, 10)
 
-	write_to_imgf('newmap.png', sep, 'result1.png')
+	write_to_imgf('big_map.png', sep, 'result1.png')
 
 	i = 0
 	while True:
@@ -326,18 +338,18 @@ if __name__ == '__main__':
 
 		if len(sep[i]) > 15:
 			'''
-			X_label, density = run_kmeans(4, sep[i], 'newmap.png')
+			X_label, density = run_kmeans(4, sep[i], 'big_map.png')
 
 			temp_sep = [[] for row in range(4)]
 
 			for j in range(len(sep[i])):
 				temp_sep[X_label[j]].append(sep[i][j])
 			'''
-			temp_sep = get_opt_kmean('newmap.png', sep[i], 10)
+			temp_sep = get_opt_kmean('big_map.png', sep[i], 10)
 
 			for t in temp_sep:
 				sep.append(t)
 
 		i+=1
 
-	write_to_imgf('newmap.png', sep, 'result2.png')
+	write_to_imgf('big_map.png', sep, 'result2.png')
