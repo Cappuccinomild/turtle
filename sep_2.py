@@ -357,7 +357,6 @@ if __name__ == '__main__':
                 temp_sep[X_label[j]].append(sep[i][j])
             '''
             temp_sep = get_opt_kmean(image_name, sep[i], 10)
-            sep.pop(i)
 
             for t in temp_sep:
                 sep.append(t)
