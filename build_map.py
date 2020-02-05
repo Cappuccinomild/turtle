@@ -2,7 +2,7 @@ import cv2
 
 turtle_bot_radius = 3
 wall = 0
-road = 255
+road = 254
 gray_zone = 195
 origin_map_name = 'origin_map.png'
 build_map_name = 'built_map.png'
@@ -20,4 +20,5 @@ for i in range(img.shape[0]):
                 if (img[i + k][j + l] != road) and (img[i + k][j + l] != gray_zone):
                     continue
                 img[i+k][j+l] = gray_zone
+                
 cv2.imwrite(build_map_name, img)
